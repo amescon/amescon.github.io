@@ -8,267 +8,262 @@
 </head>
 
 <body>
-  <h1>Controlling an LED-Array with an potentiometer</h1>
-  <p>In this sample project we will write a small application that allows us to use a slider to control a LED-Array.</p>
-  <img src="ledarray_in_action.png" alt="Image of the LED-Array in action" />
 
-  <h3>Required Parts</h3>
-  <p>If you want to follow along you'll need the following parts:</p>
+  <div class="container">
+    <h1>Controlling an LED-Array with an potentiometer</h1>
+    <p>In this sample project we will write a small application that allows us to use a slider to control a LED-Array.</p>
+    <img src="ledarray_in_action.png" alt="Image of the LED-Array in action" />
 
-  <table class="table">
-    <thead><tr><th>Part</th><th>RS Stock Number</th></tr></thead>
-    <tbody>
-      <tr><td>Raspberry Pi</td><td>8111284</td></tr>
-      <tr><td>RasPiComm+ Mainboard</td><td><b>TBA</b></td></tr>
-      <tr><td>RasPiComm+ 8-Port Output Module</td><td><b>TBA</b></td></tr>
-      <tr><td>RasPiComm+ 8-Port Analog Input Module</td><td><b>TBA</b></td></tr>
-      <tr><td>LED-Array</td><td>2465689</td></tr>
-      <tr><td>Standard Type Slide Potentiometer</td><td>2499402</td></tr>
-      <tr><td>Breadboard / Resistors</td><td></td></tr>
-    </tbody>
-  </table>
+    <h3>Required Parts</h3>
+    <p>If you want to follow along you'll need the following parts:</p>
 
-  <h3>Setup the RasPiComm+</h3>
-  <p>
+    <table class="table">
+      <thead><tr><th>Part</th><th>RS Stock Number</th></tr></thead>
+      <tbody>
+        <tr><td>Raspberry Pi</td><td>8111284</td></tr>
+        <tr><td>RasPiComm+ Mainboard</td><td><b>TBA</b></td></tr>
+        <tr><td>RasPiComm+ 8-Port Output Module</td><td><b>TBA</b></td></tr>
+        <tr><td>RasPiComm+ 8-Port Analog Input Module</td><td><b>TBA</b></td></tr>
+        <tr><td>LED-Array</td><td>2465689</td></tr>
+        <tr><td>Standard Type Slide Potentiometer</td><td>2499402</td></tr>
+        <tr><td>Breadboard / Resistors</td><td></td></tr>
+      </tbody>
+    </table>
+
+    <h3>Setup the RasPiComm+</h3>
+    <p>
+      <ol>
+        <li>Plugin the <b>Analog Input</b> Module in <b>first slot</b></li>
+        <li>Plugin the <b>Output Module</b> in the <b>second slot</b></li>
+        <li>Execute the Setup Script to configure your RasPiComm+ as follows:
+          <pre><code>sudo ./rpc+setup.sh</code></pre>
+        </li>
+      </ol>
+      <p>In this example, we assume that you plugin the Analog Input Module in the slot 1 and the Output Module in slot 2 - you may choose different slots, but you will have to adjust the code to take the different module slots into account.</p>
+      <img src="setup_rpcp.png" alt="Image of the setup RasPiComm+" />
+    </p>
+    <p>You may want to view the getting started video for the RasPiComm+</p>
+    <h3>Setup your Bread board</h3>
     <ol>
-      <li>Plugin the <b>Analog Input</b> Module in <b>first slot</b></li>
-      <li>Plugin the <b>Output Module</b> in the <b>second slot</b></li>
-      <li>Execute the Setup Script to configure your RasPiComm+ as follows:
-        <p><code>sudo ./rpc+setup.sh</code></p>
+    </ol>
+    <p>Setup your breadboard according to the following schematics:</p>
+      <img src="LEDArray_schematics.png" alt="LEDArray project Schematics" />
+    
+      <p>After setting up the bread board, it should look something like this:</p>
+      <img src="setup_completed.png" alt="Image of the Completed Setup" />
+
+    <h3>Configure the Outputs</h3>
+    <p>Before we can use the outputs to change the LED-Array, we need to initialize them in linux first.</p>
+    <p>Linux represents all GPIOs as consecutive numbers, starting from 0 and going to as many as your hardware supports. 
+    So if we want to tell Linux to set the output pin of an module, we need to use the correct number. The raspberry pi itself reserves the first 54 GPIOs for itself, 
+    which means that the GPIOs of the RasPiComm+ start at 55 and going up.</p>
+    <p>The following table shows the Linux GPIO to Output Pin mapping:</p>
+    <table>
+      <thead><tr><th>Output Pin</th><th>Linux GPIO</th></tr></thead>
+      <tbody>
+        <tr><td>Output 0</td><td>55</td></tr>
+        <tr><td>Output 1</td><td>56</td></tr>
+        <tr><td>Output 2</td><td>57</td></tr>
+        <tr><td>Output 3</td><td>58</td></tr>
+        <tr><td>Output 4</td><td>59</td></tr>
+        <tr><td>Output 5</td><td>60</td></tr>
+        <tr><td>Output 6</td><td>61</td></tr>
+        <tr><td>Output 7</td><td>62</td></tr>
+      </tbody>
+    </table>
+    <p>Now armed with this knowledge we can configure the GPIOs as outputs in linux. This is a simple two-step process for each output. 
+    First, we'll export the gpio, that is: tell Linux that we want to access the GPIO from the commandline and second configure it as an output, 
+    that is tell Linux that the GPIO in question is an output (and not an input) so that we are able to set it's value.</p>
+    <div>For example, to configure GPIO 55 we need to:</div>
+    <ol>
+      <li>export the GPIO:
+        <pre><code>echo 55 > /sys/class/gpio/export</code></pre>
+      </li>
+      <li>configure the GPIO as an output:
+        <pre><code>echo out > /sys/class/gpio/gpio55/direction</code></pre>
       </li>
     </ol>
-    <p>In this example, we assume that you plugin the Analog Input Module in the slot 1 and the Output Module in slot 2 - you may choose different slots, but you will have to adjust the code to take the different module slots into account.</p>
-    <img src="setup_rpcp.png" alt="Image of the setup RasPiComm+" />
-  </p>
-  <p>You may want to view the getting started video for the RasPiComm+</p>
-  <h3>Setup your Bread board</h3>
-  <ol>
-  </ol>
-  <p>Plug the Slider and the LED-Array into the Bread board, as shown in the image below.</p>
-  <img src="setup_breadboard.png" alt="Image of the setup Breadboard" />
+    <p>After executing those two commands, the GPIO 55 - which corresponds to the first Pin of the Output Module - is set to 0 (low).</p>
+    <img src="screenshot_configure_gpio.png" alt="Screenshot of setting up the GPIO" />
 
-  <h3>Connect the Parts</h3>
-  <p>Now we connect the parts, we start by connecting the Slider with the Analog Input Module:</p>
+    <h3>Test your setup</h3>
+    <p>Before we write the application that reads the current slider value and sets the LED-Array, we will verify our setup to see if it's working as expected.</p>
+    <p>To do this, we execute a few commandline commands to see if the slider and the LED-Array is working.</p>
+    <p>First, we'll verify the Slider:</p>
+    <ol>
+      <li>Move the slider to one of the outer positions</li>
+      <li>Then execute the following script:
+        <div>
+          <pre><code>cat /proc/rpc+/module1/analoginput0</code></pre>
+          <p>We expect to read back a value near the minimum (0) or the maximum (2^12 = 4096)</p>
+        </div>
+      </li>
+      <li>Now move the slider to the other opposite position and execute the script again:
+        <div>
+          <pre><code>cat /proc/rpc+/module1/analoginput0</code></pre>
+          <p>Confirm that the value returned is near the opposite side of the scale</p>
+        </div>
+      </li>
 
-  <h4>Connect the Slider</h4>
-  <p>Connect the Slider to the Port 0 of the Analog Input Module.</p>
+    </ol>
+    <img src="screenshot_analoginput_test.png" alt="Screenshot of the Analog Input test" />
 
-  <h4>Connect the LED-Array</h4>
-  <p>We then connect the LED-Array with the Output Module.</p>
-  <p>Connect each Output of the Output Module to the LED-Array in turn.</p>
-  <p>After setting up the bread board, it should look something like this:</p>
-  <img src="setup_completed.png" alt="Image of the Completed Setup" />
-
-  <h3>Configure the Outputs</h3>
-  <p>Before we can use the outputs to change the LED-Array, we need to initialize them in linux first.</p>
-  <p>Linux represents all GPIOs as consecutive numbers, starting from 0 and going to as many as your hardware supports. 
-  So if we want to tell Linux to set the output pin of an module, we need to use the correct number. The raspberry pi itself reserves the first 54 GPIOs for itself, 
-  which means that the GPIOs of the RasPiComm+ start at 55 and going up.</p>
-  <p>The following table shows the Linux GPIO to Output Pin mapping:</p>
-  <table>
-    <thead><tr><th>Output Pin</th><th>Linux GPIO</th></tr></thead>
-    <tbody>
-      <tr><td>Output 0</td><td>55</td></tr>
-      <tr><td>Output 1</td><td>56</td></tr>
-      <tr><td>Output 2</td><td>57</td></tr>
-      <tr><td>Output 3</td><td>58</td></tr>
-      <tr><td>Output 4</td><td>59</td></tr>
-      <tr><td>Output 5</td><td>60</td></tr>
-      <tr><td>Output 6</td><td>61</td></tr>
-      <tr><td>Output 7</td><td>62</td></tr>
-    </tbody>
-  </table>
-  <p>Now armed with this knowledge we can configure the GPIOs as outputs in linux. This is a simple two-step process for each output. 
-  First, we'll export the gpio, that is: tell Linux that we want to access the GPIO from the commandline and second configure it as an output, 
-  that is tell Linux that the GPIO in question is an output (and not an input) so that we are able to set it's value.</p>
-  <div>For example, to configure GPIO 55 we need to:</div>
-  <ol>
-    <li>export the GPIO:
-      <div><code>echo 55 > /sys/class/gpio/export</code></div>
-    </li>
-    <li>configure the GPIO as an output:
-      <div><code>echo out > /sys/class/gpio/gpio55/direction</code></div>
-    </li>
-  </ol>
-  <p>After executing those two commands, the GPIO 55 - which corresponds to the first Pin of the Output Module - is set to 0 (low).</p>
-  <img src="screenshot_configure_gpio.png" alt="Screenshot of setting up the GPIO" />
-
-  <h3>Test your setup</h3>
-  <p>Before we write the application that reads the current slider value and sets the LED-Array, we will verify our setup to see if it's working as expected.</p>
-  <p>To do this, we execute a few commandline commands to see if the slider and the LED-Array is working.</p>
-  <p>First, we'll verify the Slider:</p>
-  <ol>
-    <li>Move the slider to one of the outer positions</li>
-    <li>Then execute the following script:
-      <div>
-        <code>cat /proc/rpc+/module1/analoginput0</code>
-        <p>We expect to read back a value near the minimum (0) or the maximum (2^12 = 4096)</p>
-      </div>
-    </li>
-    <li>Now move the slider to the other opposite position and execute the script again:
-      <div>
-        <div><code>cat /proc/rpc+/module1/analoginput0</code></div>
-        <p>Confirm that the value returned is near the opposite side of the scale</p>
-      </div>
-    </li>
-
-  </ol>
-  <img src="screenshot_analoginput_test.png" alt="Screenshot of the Analog Input test" />
-
-  <p>Second, we'll verifiy the LED-Array</p>
-  <ol>
-    <li>Set the GPIO 55 to 1
-      <div><code>echo 1 > /sys/class/gpio/gpio55/value</code></div>
-    </li>
-    <li>Now we check that the first LED is on.</li>
-    <li>We can disable the LED again by executing
-      <div><code>echo 0 > /sys/class/gpio/gpio55/value</code></div>
-    </li>
-  </ol>
+    <p>Second, we'll verifiy the LED-Array</p>
+    <ol>
+      <li>Set the GPIO 55 to 1
+        <pre><code>echo 1 > /sys/class/gpio/gpio55/value</code></pre>
+      </li>
+      <li>Now we check that the first LED is on.</li>
+      <li>We can disable the LED again by executing
+        <pre><code>echo 0 > /sys/class/gpio/gpio55/value</code></pre>
+      </li>
+    </ol>
 
 
-  <h3>Write an Application</h3>
-  <p>Now we're finally setup to write a simple application that can take advantage of our hardware setup!</p>
+    <h3>Write an Application</h3>
+    <p>Now we're finally setup to write a simple application that can take advantage of our hardware setup!</p>
 
-  <h4>Pseudo Code</h4>
-  <p>The following pseudo code will represent the application:</p>
-  <pre>
-    <code>
+    <h4>Pseudo Code</h4>
+    <p>The following pseudo code will represent the application:</p>
+    <pre>
+      <code>
 
-    main() {
+      main() {
 
-      /* initialize the gpios */
-      ...
-
-      /* loop forever! */
-      while (true)
-      {
-        /* read input from slider */
+        /* initialize the gpios */
         ...
+
+        /* loop forever! */
+        while (true)
+        {
+          /* read input from slider */
+          ...
         
-        /* using the slider input, compute the outputs that we want to set */
-        ...
+          /* using the slider input, compute the outputs that we want to set */
+          ...
 
-        /* set the outputs */
-        ...
+          /* set the outputs */
+          ...
 
-      };
-    }
-    </code>
-  </pre>
+        };
+      }
+      </code>
+    </pre>
 
-  <h4>An Implementation using Bash script</h4>
-  <p>We create an bash script, that you can download <a href="led_array.sh">here</a>, named <code>led_array.sh</code> with the following content:
-  <pre>
-    <code>
-#!/bin/bash
-# RasPiComm+ Example Project 
-# prints general info
-function print_info() {
-  echo "RasPiComm+ Example Project 1"
-  echo "Controlling an LED-Array with an potentiometer"
-  echo ""
-}
-# exports the supplied gpio and configues it as an output
-function init_gpio() {
-  if [[ ! -d /sys/class/gpio/gpio$1 ]]; then
-    echo $1 > /sys/class/gpio/export
-    sleep 0.5 # insert a small delay, as the gpio is not instantly available and the direction change may fail
-  fi
-  echo out > /sys/class/gpio/gpio$1/direction
-}
-# sets the specified output high
-function set_output() {
-  echo 1 > /sys/class/gpio/gpio$1/value
-}
-# sets the specified output low
-function clear_output() {
-  echo 0 > /sys/class/gpio/gpio$1/value
-}
-# initializes the gpios
-function init_gpios() {
-  echo "initializing gpios"
-  init_gpio 55;
-  init_gpio 56;
-  init_gpio 57;
-  init_gpio 58;
-  init_gpio 59;
-  init_gpio 60;
-  init_gpio 61;
-  init_gpio 62;
-}
-# sets the leds according to the supplied value
-function set_led() {
-  local value=$1
-  local led_count="$(( ($value / 500) ))"
-  # debugging statement 
-  #echo "-> led_count: ${led_count}"
-  local index=0
-  while [[ $index -lt 8 ]]
-  do
-    if [[ $index -lt $led_count ]]; then
-      set_output $(($index+55))
-    else
-      clear_output $(($index+55))
+    <h4>An Implementation using Bash script</h4>
+    <p>We create an bash script, that you can download <a href="led_array.sh">here</a>, named <code>led_array.sh</code> with the following content:
+    <pre>
+      <code>
+  #!/bin/bash
+  # RasPiComm+ Example Project 
+  # prints general info
+  function print_info() {
+    echo "RasPiComm+ Example Project 1"
+    echo "Controlling an LED-Array with an potentiometer"
+    echo ""
+  }
+  # exports the supplied gpio and configues it as an output
+  function init_gpio() {
+    if [[ ! -d /sys/class/gpio/gpio$1 ]]; then
+      echo $1 > /sys/class/gpio/export
+      sleep 0.5 # insert a small delay, as the gpio is not instantly available and the direction change may fail
     fi
-    index=$(($index+1))
-  done
-}
-# read the value of the analog input into the variable VALUE
-function get_analog_value() {
-  # we read the value of the of port 0 of the analog input in module 1
-  VALUE=`cat /proc/rpc+/module1/inputanalog0`
-}
-function main() {
-  # print the startup info
-  print_info;
-  # initialize the gpios
-  init_gpios;
-  echo "reading analog input and setting outputs..."
-  # keep looping forever
-  while [[ 1 ]]
-  do
-    get_analog_value;
-    local analog_value=$VALUE
-    # when debugging, uncomment the following line to view the analog value
-    #echo $analog_value;
-    set_led $analog_value;
-    # when debugging, uncomment the following line!
-    # sleep 1;
-  done
-}
-# main entry point
-main;
+    echo out > /sys/class/gpio/gpio$1/direction
+  }
+  # sets the specified output high
+  function set_output() {
+    echo 1 > /sys/class/gpio/gpio$1/value
+  }
+  # sets the specified output low
+  function clear_output() {
+    echo 0 > /sys/class/gpio/gpio$1/value
+  }
+  # initializes the gpios
+  function init_gpios() {
+    echo "initializing gpios"
+    init_gpio 55;
+    init_gpio 56;
+    init_gpio 57;
+    init_gpio 58;
+    init_gpio 59;
+    init_gpio 60;
+    init_gpio 61;
+    init_gpio 62;
+  }
+  # sets the leds according to the supplied value
+  function set_led() {
+    local value=$1
+    local led_count="$(( ($value / 500) ))"
+    # debugging statement 
+    #echo "-> led_count: ${led_count}"
+    local index=0
+    while [[ $index -lt 8 ]]
+    do
+      if [[ $index -lt $led_count ]]; then
+        set_output $(($index+55))
+      else
+        clear_output $(($index+55))
+      fi
+      index=$(($index+1))
+    done
+  }
+  # read the value of the analog input into the variable VALUE
+  function get_analog_value() {
+    # we read the value of the of port 0 of the analog input in module 1
+    VALUE=`cat /proc/rpc+/module1/inputanalog0`
+  }
+  function main() {
+    # print the startup info
+    print_info;
+    # initialize the gpios
+    init_gpios;
+    echo "reading analog input and setting outputs..."
+    # keep looping forever
+    while [[ 1 ]]
+    do
+      get_analog_value;
+      local analog_value=$VALUE
+      # when debugging, uncomment the following line to view the analog value
+      #echo $analog_value;
+      set_led $analog_value;
+      # when debugging, uncomment the following line!
+      # sleep 1;
+    done
+  }
+  # main entry point
+  main;
 
-    </code>
-  </pre>
-  </p>
+      </code>
+    </pre>
+    </p>
 
-  <h3>Using the Applicaton</h3>
-  <p>Then we start the script and see the following output:</p>
-  <img src="screenshot_starting_script.png" alt="Screenshot when starting the script" />
-<!--  <pre>
-    <code>
-pi@raspberrypi ~ $ ./led_array.sh
-RasPiComm+ Example Project 1
-Controlling an LED-Array with an potentiometer
-initializing gpios
-reading analog input and setting outputs...
-    </code>
-  </pre>-->
-  <p>Now we can use the slider to control the LED-Array!</p>
+    <h3>Using the Applicaton</h3>
+    <p>Then we start the script </p>
+    <pre><code>./led_array.sh</code></pre>
+    <p>and see the following output:</p>
+    <img src="screenshot_starting_script.png" alt="Screenshot when starting the script" />
+  <!--  <pre>
+      <code>
+  pi@raspberrypi ~ $ ./led_array.sh
+  RasPiComm+ Example Project 1
+  Controlling an LED-Array with an potentiometer
+  initializing gpios
+  reading analog input and setting outputs...
+      </code>
+    </pre>-->
+    <p>Now we can use the slider to control the LED-Array!</p>
 
-  <img src="ledarray_in_action.png" alt="Image of the LED-Array in Action" />
+    <img src="ledarray_in_action.png" alt="Image of the LED-Array in Action" />
 
-  <h3>Additional Resources</h3>
-  <p>If you have questions or feedback, please check out the following Resources:</p>
-  <table>
-    <thead><tr><th>Resource</th><th>Url</th></tr></thead>
-    <tbody>
-      <tr><td>IndieGoGo Campaign</td><td><a href="https://www.indiegogo.com/projects/raspicommplus-all-in-one-raspberry-pi-extension">IndieGoGo Campaign</a></td></tr>
-<!--      <tr><td>RasPiComm+ Support Forum</td><td><a href="http://www.amescon.com/phpbb/viewforum.php?f=8">Official RasPiComm+ Support Forum</a></td></tr>-->
-    </tbody>
-  </table>
-
+    <h3>Additional Resources</h3>
+    <p>If you have questions or feedback, please check out the following Resources:</p>
+    <table class="table">
+      <thead><tr><th>Resource</th><th>Url</th></tr></thead>
+      <tbody>
+        <tr><td>IndieGoGo Campaign</td><td><a href="https://www.indiegogo.com/projects/raspicommplus-all-in-one-raspberry-pi-extension">IndieGoGo Campaign</a></td></tr>
+  <!--      <tr><td>RasPiComm+ Support Forum</td><td><a href="http://www.amescon.com/phpbb/viewforum.php?f=8">Official RasPiComm+ Support Forum</a></td></tr>-->
+      </tbody>
+    </table>
+  </div>
 </body>
 </html>
