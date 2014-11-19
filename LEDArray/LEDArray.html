@@ -1,7 +1,7 @@
 ﻿<!DOCTYPE html>
 <html xmlns="http://www.w3.org/1999/xhtml">
 <head>
-  <title>Controlling an LED-Array with an potentiometer</title>
+  <title>Controlling an LED-Array with a potentiometer</title>
   <!-- use bootstrap default theme -->
   <link href="../Content/bootstrap.min.css" rel="stylesheet" />
   <link href="../Content/bootstrap-theme.min.css" rel="stylesheet" />
@@ -12,7 +12,10 @@
   <div class="container">
     <h1>Controlling an LED-Array with an potentiometer</h1>
     <p>In this sample project we will write a small application that allows us to use a slider to control a LED-Array.</p>
-    <img src="ledarray_in_action.png" alt="Image of the LED-Array in action" />
+    
+    <div class="embed-responsive embed-responsive-16by9">
+      <iframe class="embed-responsive-item"  src="http://www.youtube.com/embed/IlgMScL8l7M" allowfullscreen ></iframe>
+    </div>
 
     <h3>Required Parts</h3>
     <p>If you want to follow along you'll need the following parts:</p>
@@ -40,7 +43,6 @@
         </li>
       </ol>
       <p>In this example, we assume that you plugin the Analog Input Module in the slot 1 and the Output Module in slot 2 - you may choose different slots, but you will have to adjust the code to take the different module slots into account.</p>
-      <img src="setup_rpcp.png" alt="Image of the setup RasPiComm+" />
     </p>
     <p>You may want to view the getting started video for the RasPiComm+</p>
     <h3>Setup your Bread board</h3>
@@ -58,7 +60,7 @@
     So if we want to tell Linux to set the output pin of an module, we need to use the correct number. The raspberry pi itself reserves the first 54 GPIOs for itself, 
     which means that the GPIOs of the RasPiComm+ start at 55 and going up.</p>
     <p>The following table shows the Linux GPIO to Output Pin mapping:</p>
-    <table>
+    <table class="table">
       <thead><tr><th>Output Pin</th><th>Linux GPIO</th></tr></thead>
       <tbody>
         <tr><td>Output 0</td><td>55</td></tr>
@@ -151,7 +153,7 @@
     </pre>
 
     <h4>An Implementation using Bash script</h4>
-    <p>We create an bash script, that you can download <a href="led_array.sh">here</a>, named <code>led_array.sh</code> with the following content:
+    <p>We now create a bash script, that you can download <a href="led_array.sh">here</a>, named <code>led_array.sh</code> with the following content:
     <pre>
       <code>
   #!/bin/bash
@@ -237,20 +239,11 @@
     </pre>
     </p>
 
-    <h3>Using the Applicaton</h3>
+    <h3>Using the Application</h3>
     <p>Then we start the script </p>
     <pre><code>./led_array.sh</code></pre>
     <p>and see the following output:</p>
     <img src="screenshot_starting_script.png" alt="Screenshot when starting the script" />
-  <!--  <pre>
-      <code>
-  pi@raspberrypi ~ $ ./led_array.sh
-  RasPiComm+ Example Project 1
-  Controlling an LED-Array with an potentiometer
-  initializing gpios
-  reading analog input and setting outputs...
-      </code>
-    </pre>-->
     <p>Now we can use the slider to control the LED-Array!</p>
 
     <img src="ledarray_in_action.png" alt="Image of the LED-Array in Action" />
@@ -261,7 +254,7 @@
       <thead><tr><th>Resource</th><th>Url</th></tr></thead>
       <tbody>
         <tr><td>IndieGoGo Campaign</td><td><a href="https://www.indiegogo.com/projects/raspicommplus-all-in-one-raspberry-pi-extension">IndieGoGo Campaign</a></td></tr>
-  <!--      <tr><td>RasPiComm+ Support Forum</td><td><a href="http://www.amescon.com/phpbb/viewforum.php?f=8">Official RasPiComm+ Support Forum</a></td></tr>-->
+        <tr><td>RasPiComm+ Support Forum</td><td><a href="http://www.amescon.com/phpbb/viewforum.php?f=8">Official RasPiComm+ Support Forum</a></td></tr>
       </tbody>
     </table>
   </div>
